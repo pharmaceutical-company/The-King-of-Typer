@@ -52,5 +52,6 @@ KotLexer.prototype =  {
       }
       res.push(tmp);
     }
+    return res
   }
 }
