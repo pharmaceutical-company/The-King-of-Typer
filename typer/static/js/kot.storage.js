@@ -1,5 +1,5 @@
 KotStorage = function(){
-  var row = 0, col = 0;
+  var row = 0, col = 0, max_col = -1;
   var storage = [""];
 
   function newLine() {
@@ -11,6 +11,7 @@ KotStorage = function(){
     storage.splice(row+1,0,line2);
     row = row + 1;
     col = 0;
+    max_col = -1;
   }
 
   function putChar(charData){
@@ -19,10 +20,10 @@ KotStorage = function(){
     var line2 = line.slice(col);
     storage[row] = line1 + charData + line2;
     col= col + 1;
+    max_col = -1;
   }
 
   this.putchar = function(code) {
-    console.log(code)
     if(code == 13) {
       newLine();
     } else if(33<=code && code<=40) {
@@ -33,23 +34,35 @@ KotStorage = function(){
         break;
       case 35: // END
         col = storage[row].length;
+        max_col = -1;
         break;
       case 36: // HOME
         col = 0;
+        max_col = -1;
         break;
       case 37: // LEFT
         if(col > 0) col = col - 1;
+        max_col = -1;
         break;
       case 38: // UP
         if(row >0) row = row - 1;
-        if(col > storage[row].length) col = storage[row].length;
+        if(max_col!=-1) col = max_col;
+        if(col > storage[row].length) {
+          max_col = col;
+          col = storage[row].length;
+        }
         break;
       case 39: // RIGHT
         if(col < storage[row].length) col = col + 1;
+        max_col = -1;
         break;
       case 40: // DOWN
         if(row < storage.length-1) row = row + 1;
-        if(col > storage[row].length) col = storage[row].length;
+        if(max_col!=-1) col = max_col;
+        if(col > storage[row].length) {
+          max_col = col;
+          col = storage[row].length;
+        }
         break;
       }
     } else {
