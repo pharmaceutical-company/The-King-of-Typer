@@ -58,8 +58,8 @@ KotLexer.prototype =  {
     return ruleList[k];
   },
   tokenize: function(t) {
-    var res = []
-    var statement = ""
+    var res = [];
+    var statement = "";
     for(i in t) {
       var tmp = [];
       l = new Lexed(t[i], this.rules(this.rulesKind))
@@ -67,16 +67,16 @@ KotLexer.prototype =  {
       while ((token = l.lex()) != Lexed.EOF) {
         if(token.kind == "comment" && (token.str == '"""' || token.str == "'''")) {
           if(statement.length == 0) {
-            statement = "comment"
+            statement = "comment";
           } else {
-            statement = ""
+            statement = "";
           }
         }
         if(statement.length == 0) {
           tmp.push(token);
         } else {
-          token.kind = statement
-          tmp.push(token)
+          token.kind = statement;
+          tmp.push(token);
         }
       }
       res.push(tmp);
