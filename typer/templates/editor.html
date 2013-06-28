@@ -4,7 +4,14 @@
 The King of Typer
 {% endblock %}
 
+{% block head %}
+    <script type="text/javascript" src="{{ url_for('static', filename='js/kot.storage.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/kot.renderer.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/kot.js') }}"></script>
+{% endblock %}
+
 {% block body %}
+  <textarea class="kot" style="width: 200px; height:300px;"></textarea>
 {% endblock %}
 
 {% block script %}
