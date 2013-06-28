@@ -1,53 +1,61 @@
 var KotEngine = function() {
-  var tokenList = [];
-  var lexer = new KotLexer('python');
-  var eventCallback = function() {};
-
-  var nextId = 0;
-  function idGen() {
-    return nextId++;
-  }
-
-  this.putSource = function(source) {
-    var newTokenList = lexer.tokenize(source);
-    function checkSameToken(a, b) {
-      if((a.kine==b.kine)&&(a.str==b.str)){
-        return true;
-      }
-      return false;
-    }
-    var breakFlag = false;
-    var lines = Math.min(tokenList.length, newTokenList.length);
-    for(var i=0; i<lines&&!breakFlag; i++) {
-      var tokens = Math.min(tokenList[i].length, newTokenList[i].length);
-      for(var j=0; j<tokens&&!breakFlag; j++) {
-        if(!checkSameToken(tokenList[i][j], newTokenList[i][j])) {
-          breakFlag = true;
-          break;
-        }
-        newTokenList[i][j].id = tokenList[i][j].id;
-        delete tokenList[i][j].id;
-      }
-    }
-    breakFlag = false;
-    for(var ie=1; ie<=lines&&!breakFlag; ie++) {
-      var line = tokenList[tokenList.length-ie];
-      var newLine = newTokenList[newTokenList.length-ie];
-      var tokens = Math.min(line.length, newLine.length);
-      for(var je=1; je<=tokens&&!breakFlag; je++) {
-        var token = line[line.length-je];
-        var newToken = newLine[newLine.length-je];
-        if(!checkSameToken(token, newToken)) {
-          breakFlag = true;
-          break;
-        }
-        newToken.id = token.id;
-        delete token.id;
-      }
-    }
-  };
-
-  this.setEventCallback = function(callback) {
-    eventCallback = callback;
-  };
+  this.tokenList = [];
+  this.lexer = new KotLexer('python');
+  this.eventCallback = function() {};
+  this.nextId = 0;
 };
+
+KotEngine.prototype = {
+  idGen: function() {
+    return this.nextId++;
+  },
+  initSource: function(source) {
+    for(i in source) {
+      line = source[i]
+      for(j in line) {
+        token = line[j]
+        console.log(token)
+        this.tokenList.push({
+          'kind': token.kind,
+          'str': token.str,
+          'id': this.idGen()
+        })
+      }
+    }
+  },
+  diffSource: function(newToken) {
+    function isSameLine(a, b) {
+      minTokenLength = Math.min(a.length, b.length)
+      for(var j = 0; j < minTokenLength; j++) {
+        if(a[j].kind != b[j].kind || a[j].str != b[j].str) {
+          return j
+        }
+      }
+      return -1
+    }
+    var line = 0;
+    var token = 0;
+    var minLineLength = Math.min(newToken.length, this.tokenList.length)
+    for(var i=0; i < minLineLength; i++) {
+      lineDiff = isSameLine(newToken[i], this.tokenList[i]);
+      if(lineDiff != -1) {
+        line = i;
+        token = lineDiff;
+      }
+    }
+    return {'row': line, 'token': token};
+  },
+  putSource: function(source) {
+    var newTokenList = this.lexer.tokenize(source); 
+
+    if(this.tokenList.length == 0) {
+      this.tokenList = newTokenList;
+    } else {
+      diffPoint = this.diffSource(newTokenList)
+      console.log(diffPoint)
+    }
+  },
+  setEventCallback: function(callback) {
+    eventCallback = callback;
+  }
+}
