@@ -3,14 +3,10 @@
     var width = this.width();
     var height = this.height();
 
-    //TODO: Remove this code and load kot renderer module.
-    var stage = new PIXI.Stage(0x66FF99);
-    var renderer = PIXI.autoDetectRenderer(width, height);
-    renderer.render(stage);
-
+    var renderer = new KotRenderer(width, height);
     var canvasElement = renderer.view;
 
-    this.before(renderer.view);
+    this.before(canvasElement);
     this.hide();
     return this;
   }
