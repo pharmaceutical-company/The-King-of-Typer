@@ -5,10 +5,15 @@ The King of Typer
 {% endblock %}
 
 {% block head %}
+    <script type="text/javascript" src="{{ url_for('static', filename='js/kot.storage.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/kot.renderer.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/kot.js') }}"></script>
 {% endblock %}
 
 {% block body %}
   <textarea class="kot" style="width: 1024px; height:768px;"></textarea>
+{% endblock %}
+
+{% block script %}
+  <script type="text/javascript" src="{{ url_for('static', filename='js/kot.lexer.js') }}"></script>
 {% endblock %}
