@@ -40,6 +40,7 @@ KotRenderer = function(width, height) {
   function doMessages() {
     while(messageQueue.length > 0) {
       message = messageQueue.shift();
+      clear();
       for(var i=0; i<message.tokens.length; ++i) {
         for(var j=0; j<message.tokens[i].length; ++j) {
           characterRenderer.addToken(message.tokens[i][j]);
@@ -55,6 +56,13 @@ KotRenderer = function(width, height) {
     renderer.render(stage);
   }
 
+  function clear() {
+    characterRenderer.clear();
+    for(var i=stage.children.length-1; i>=0; --i) {
+      stage.removeChild(stage.children[i], i);
+    }
+  }
+
 }
 
 KotCharacterRenderer = function(columns, rows) {
@@ -67,8 +75,8 @@ KotCharacterRenderer = function(columns, rows) {
 
   this.length = function() { return characterArray.length; }
 
-  function addCharacter(value, position) {
-    value = new Character(value);
+  function addCharacter(value, position, color) {
+    value = new Character(value, color);
 
     if(position <= 0) characterArray = [value].concat(characterArray);
     else if(position > characterArray.length) characterArray.push(value);
@@ -87,19 +95,29 @@ KotCharacterRenderer = function(columns, rows) {
   }
 
   this.addToken = function(token) {
-    // if token.kind == ??: color = ??
+    var color = 'white';
+
+    switch(token.kind) {
+    case 'keyword':
+      color = '#7F7FFF';
+      break;
+    case 'string':
+      color = '#FF7F7F';
+      break;
+    case 'identifier':
+      color = '#BFBF00';
+      break;
+    }
+
     for(var i=0; i<token.str.length; ++i) {
-      addCharacter(token.str[i], drawPosition++);
+      addCharacter(token.str[i], drawPosition++, color);
     }
   }
 
-  this.removeCharacter = function(position) {
-    characterArray = (position < 0 || position > characterArray.length) ?
-        characterArray : 
-        characterArray.slice(0, position).
-        concat(characterArray.slice(position+1, characterArray.length));
-
-    changed = true;
+  this.clear = function() {
+    characterArray = new Array();
+    drawPosition = 0;
+    firstRow = 0;
   }
 
   function getPositionOfFirstOfLine(line) {
@@ -134,7 +152,7 @@ KotCharacterRenderer = function(columns, rows) {
         continue;
       }
 
-      characterArray[i].displayObject.position.x = columnCount * 10;
+      characterArray[i].displayObject.position.x = columnCount * 9;
       characterArray[i].displayObject.position.y = rowCount * 16;
 
       stage.addChild(characterArray[i].displayObject);
@@ -152,10 +170,10 @@ KotCharacterRenderer = function(columns, rows) {
 
 }
 
-Character = function(value) {
+Character = function(value, color) {
 
   this.value = value;
-  var color = "white";
+  var color = color;
 
   if(value != '\n')
     this.displayObject =
@@ -226,16 +244,17 @@ var EFFECT_PROTOTYPE_MAP = {
 */
 
   DRAW_STRING: {
-      type: "func",
-      frameLength: 1,
-      update: function(frame, value) {
-        if(frame <= this.frameLength)
-          return new PIXI.Text(value, { font: "14px monospace", fill: "white" });
-        else
-          return null;
-      },
-      draw: function(drawingObject, stage) {
-        stage.addChild(drawingObject);
-      },
+    type: "func",
+    frameLength: 1,
+    update: function(frame, value) {
+      if(frame <= this.frameLength)
+        return new PIXI.Text(value, { font: "14px monospace", fill: "white" });
+      else
+        return null;
+    },
+    draw: function(drawingObject, stage) {
+      stage.addChild(drawingObject);
+    },
   },
+
 }

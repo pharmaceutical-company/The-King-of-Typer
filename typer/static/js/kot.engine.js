@@ -102,9 +102,12 @@ KotEngine.prototype = {
       this.tokenList = newTokenList
       console.log(this.tokenList)
       // call renderer
+      this.eventCallback({
+        "tokens": this.tokenList 
+      }); 
     }
   },
   setEventCallback: function(callback) {
-    eventCallback = callback;
+    this.eventCallback = callback;
   }
 }

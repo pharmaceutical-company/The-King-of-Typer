@@ -1,6 +1,7 @@
 KotStorage = function(){
   var row = 0, col = 0, max_col = -1;
   var storage = [""];
+  var engine;
 
   function newLine() {
     var line = storage[row];
@@ -68,6 +69,11 @@ KotStorage = function(){
     } else {
       putChar(String.fromCharCode(code));
     }
+    if(engine != undefined) engine.putSource(storage);
+  }
+
+  this.setEngine = function(e) {
+    engine = e;
   }
 
   this.setCurser = function(row, col) {

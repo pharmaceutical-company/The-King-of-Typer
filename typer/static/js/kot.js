@@ -14,6 +14,9 @@
 
     var canvasElement = renderer.view;
     var storage = new KotStorage();
+    var engine = new KotEngine();
+    storage.setEngine(engine);
+    engine.setEventCallback(renderer.requestMessage)
 
     var kovElement = $('<div></div>')
                        .width(width)
@@ -53,6 +56,7 @@
 
     this.before(kovElement);
     this.hide();
+    
     return this;
   }
   
