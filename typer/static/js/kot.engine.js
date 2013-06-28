@@ -21,7 +21,7 @@ var KotEngine = function() {
     for(var i=0; i<lines&&!breakFlag; i++) {
       var tokens = Math.min(tokenList[i].length, newTokenList[i].length);
       for(var j=0; j<tokens&&!breakFlag; j++) {
-        if(!checkSameToken(tokenList[i][j], newTokenList[i][j]) {
+        if(!checkSameToken(tokenList[i][j], newTokenList[i][j])) {
           breakFlag = true;
           break;
         }
@@ -37,7 +37,7 @@ var KotEngine = function() {
       for(var je=1; je<=tokens&&!breakFlag; je++) {
         var token = line[line.length-je];
         var newToken = newLine[newLine.length-je];
-        if(!checkSameToken(token, newToken) {
+        if(!checkSameToken(token, newToken)) {
           breakFlag = true;
           break;
         }
@@ -45,12 +45,9 @@ var KotEngine = function() {
         delete token.id;
       }
     }
-    
-
   };
 
   this.setEventCallback = function(callback) {
     eventCallback = callback;
   };
-
-}
+};
