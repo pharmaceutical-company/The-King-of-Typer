@@ -31,26 +31,56 @@ KotLexer.prototype =  {
         "\\b\\d+\\.?\\w*": function(text) {
           return that.tokenForm('number', text);
         },
-        "\\s": function(text) {
+        "\\s+": function(text) {
           return that.tokenForm('whitespace', text);
         },
         '[a-zA-Z_][a-zA-Z0-9_]*': function(text) {
           return that.tokenForm('identifier', text);
+        },
+        '\\(|\\)|\\[|\\]|\\{|\\}': function(text) {
+          return that.tokenForm('parenthese', text);
+        },
+        '\\:': function(text) {
+          return that.tokenForm('colon', text);
+        },
+        ',': function(text) {
+          return that.tokenForm('comma', text);
+        },
+        '=': function(text) {
+          return that.tokenForm('equal', text);
+        },
+        '\\\\': function(text) {
+          return that.tokenForm('linebreak', text);
         }
+
       } 
     };
     return ruleList[k];
   },
   tokenize: function(t) {
     var res = []
+    var statement = ""
     for(i in t) {
       var tmp = [];
       l = new Lexed(t[i], this.rules(this.rulesKind))
       var token;
       while ((token = l.lex()) != Lexed.EOF) {
-        tmp.push(token);
+        if(token.kind == "comment" && (token.str == '"""' || token.str == "'''")) {
+          if(statement.length == 0) {
+            statement = "comment"
+          } else {
+            statement = ""
+          }
+        }
+        if(statement.length == 0) {
+          tmp.push(token);
+        } else {
+          token.kind = statement
+          tmp.push(token)
+        }
       }
       res.push(tmp);
     }
+    return res
   }
 }
