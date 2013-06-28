@@ -24,11 +24,48 @@ KotStorage = function(){
     max_col = -1;
   }
 
+  function rmChar() {
+    var line = storage[row];
+    var line1 = line.slice(0, col-1);
+    var line2 = line.slice(col);
+    storage[row] = line1 + line2;
+    col = col - 1;
+    max_col = -1;
+  }
+
+  function mergeLine() {
+    if(row==0) return;
+    var line1 = storage[row-1];
+    var line2 = storage[row];
+    var line = line1.concat(line2);
+    storage.splice(row-1,2,line);
+    row = row - 1;
+    col = line1.length;
+    max_col = -1;
+  }
+
   this.putchar = function(code) {
     if(code == 13) {
       newLine();
-    } else if(33<=code && code<=40) {
+    } else if((33<=code && code<=40) || code == 8 || code == 46) {
       switch(code) {
+      case  8: // BACK SPACE
+        if (0 < col) {
+          rmChar();
+        } else if(0 < row) {
+          mergeLine();
+        }
+        break;
+      case 46: // DELETE
+        if(col < storage[row].length) {
+          col = col + 1;
+          rmChar();
+        } else if(row < storage.length-1) {
+          row = row + 1;
+          col = 0;
+          mergeLine();
+        }
+        break;
       case 33: // PAGE UP
         break;
       case 34: // PAGE DOWN
