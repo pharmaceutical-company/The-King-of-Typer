@@ -41,18 +41,21 @@ KotRenderer = function(width, height) {
   function doMessages() {
     while(messageQueue.length > 0) {
       message = messageQueue.shift();
-      characterRenderer.clear();
       if(characterRenderer.cursorXY != undefined && Object.keys(message.act).length == 0) {
         effectRenderer.addEffect(
             new Effect(EFFECT_PROTOTYPE_MAP.ATTACK, null, stage, characterRenderer.cursorXY.x, characterRenderer.cursorXY.y));
       }
-      for(var i=0; i<message.tokens.length; ++i) {
-        //if(message.cursor.row == i)
-        //  characterRenderer.setCursorPosition(characterRenderer.drawPosition);
-        for(var j=0; j<message.tokens[i].length; ++j) {
-          characterRenderer.addToken(message.tokens[i][j]);
+      if(messageQueue.length == 0) { 
+        characterRenderer.clear();
+        for(var i=0; i<message.tokens.length; ++i) {
+          if(message.cursor.row == i)
+            characterRenderer.
+                setCursorPosition(characterRenderer.drawPosition+message.cursor.col);
+          for(var j=0; j<message.tokens[i].length; ++j) {
+            characterRenderer.addToken(message.tokens[i][j]);
+          }
+          characterRenderer.newLine();
         }
-        characterRenderer.newLine();
       }
     }
   }
@@ -77,10 +80,10 @@ KotCharacterRenderer = function(columns, rows) {
   var characterArray = new Array(),
       that = this,
       firstRow = 0,
-      drawPosition = 0,
       changed = false,
       cursorPosition = 0;
 
+  this.drawPosition = 0;
   this.cursorXY = undefined;
   this.cursorDisplayObject = undefined;
   this.cursorTexture = PIXI.Texture.fromImage("/static/img/cursor.png");
@@ -104,7 +107,7 @@ KotCharacterRenderer = function(columns, rows) {
   }
 
   this.newLine = function() {
-    addCharacter('\n', drawPosition++);
+    addCharacter('\n', that.drawPosition++);
   }
 
   this.addToken = function(token) {
@@ -126,13 +129,13 @@ KotCharacterRenderer = function(columns, rows) {
     }
 
     for(var i=0; i<token.str.length; ++i) {
-      addCharacter(token.str[i], drawPosition++, color);
+      addCharacter(token.str[i], that.drawPosition++, color);
     }
   }
 
   this.clear = function() {
     characterArray = new Array();
-    drawPosition = 0;
+    that.drawPosition = 0;
     cursorPosition = 0;
     firstRow = 0;
   }
@@ -161,22 +164,23 @@ KotCharacterRenderer = function(columns, rows) {
     var columnCount = 0, rowCount = 0;
 
     for(var i=getPositionOfFirstOfLine(firstRow); i<characterArray.length; ++i) {
+      if(cursorPosition == i) {
+        that.cursorXY = { x: columnCount * 9, y: rowCount * 16 };
+        console.log(that.cursorXY.x+", "+that.cursorXY.y);
+
+        cursorDisplayObject = new PIXI.Sprite(
+            new PIXI.Texture(that.cursorTexture, new PIXI.Rectangle(1, 1, 9, 16))
+        );
+        cursorDisplayObject.position.x = that.cursorXY.x;
+        cursorDisplayObject.position.y = that.cursorXY.y;
+
+        stage.addChild(cursorDisplayObject);
+      }
+
       if(characterArray[i].value == '\n') {
         columnCount = 0;
         ++rowCount;
         continue;
-      }
-
-      if(cursorPosition == i) {
-        that.cursorXY = { x: columnCount * 10, y: rowCount * 16 };
-
-        cursorDisplayObject = new PIXI.Sprite(
-            new PIXI.Texture(
-                that.cursorTexture, new PIXI.Rectangle(that.cursorXY.x, that.cursorXY.y, 9, 16)
-            )
-        );
-
-        stage.addChild(cursorDisplayObject);
       }
 
       characterArray[i].displayObject.position.x = columnCount * 9;
@@ -267,6 +271,11 @@ Effect = function(effectPrototype, value, stage, x, y) {
   }
 
   this.draw = function() {
+    drawingObject.anchor.x = 0.5;
+    drawingObject.anchor.y = 0.5;
+    drawingObject.position.x = x;
+    drawingObject.position.y = y;
+
     if(effectPrototype.type == "func" && drawingObject != null)
       effectPrototype.draw(drawingObject, stage);
     else if(effectPrototype.type == "image")
