@@ -3,6 +3,7 @@ var KotEngine = function() {
   this.lexer = new KotLexer('python');
   this.eventCallback = function() {};
   this.nextId = 0;
+  this.code = -1;
 };
 
 KotEngine.prototype = {
@@ -92,11 +93,32 @@ KotEngine.prototype = {
       } else {
         newToken[bef['row']][after['token']]['id'] = this.tokenList[bef['row']][after['old']]['id'];
       }
+      /*
+      if((this.code == 46 || this.code == 8) && newToken[bef['row']][after['token']].length == 0) { 
+        this.acts.push({
+          'id': newToken[bef['row']][after['token']]['id'],
+          'act': 'delete'
+        })
+      } else {
+        var act = ""
+        switch(newToken[bef['row']][after['token']]['kind']) {
+          case "keyword": act = "new"
+          case "special": act = "new"
+          case "number": act = "newNumber"
+        }
+        this.acts.push({
+          'id': newToken[bef['row']][after['token']]['id'],
+          'act': act
+        })
+      }
+      */
       after['old'] = ++after['old'];
       after['token'] = ++after['token'];
     }
   },
-  putSource: function(source) {
+  putSource: function(source, opts) {
+    this.acts = []
+    this.code = opts['code']
     var newTokenList = this.lexer.tokenize(source);
     console.log(newTokenList)
 
@@ -105,15 +127,15 @@ KotEngine.prototype = {
     } else {
       diffPoint = this.diffSource(newTokenList)
       samePoint = this.getSameToken(newTokenList, after=diffPoint)
-      console.log(diffPoint)
-      console.log(samePoint)
       this.inheritId(newTokenList, diffPoint, samePoint)
       this.tokenList = newTokenList
-      console.log(this.tokenList)
     }
     // call renderer
+    console.log("act >",this.acts)
     this.eventCallback({
-      "tokens": this.tokenList 
+      "tokens": this.tokenList,
+      "act": this.acts,
+      "cursor": opts['cursor']
     }); 
   },
   setEventCallback: function(callback) {

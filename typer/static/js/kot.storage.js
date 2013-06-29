@@ -103,11 +103,15 @@ KotStorage = function(){
       }
       break;
     }
-    if(engine != undefined) engine.putSource(storage);
+    if(engine != undefined) engine.putSource(storage, {cursor: {col: col, row: row}, code: code});
   };
   this.putChar = function(code) {
     putChar(String.fromCharCode(code));
-    if(engine != undefined) engine.putSource(storage);
+    if(engine != undefined) engine.putSource(
+                              storage,
+                              {cursor: {col: col, row: row},
+                               code: code}
+                            );
   }
 
   this.setEngine = function(e) {
