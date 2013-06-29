@@ -43,7 +43,6 @@
 
     textareaElement.keydown(function(e){
       var code = e.keyCode;
-      console.log(code);
       if((33<=code && code<=40) || code == 8 || code == 46) {
         storage.putchar(e.which);
       }
