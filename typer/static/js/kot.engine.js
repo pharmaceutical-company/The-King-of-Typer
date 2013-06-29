@@ -4,6 +4,7 @@ var KotEngine = function() {
   this.eventCallback = function() {};
   this.nextId = 0;
   this.code = -1;
+  this.act = {};
 };
 
 KotEngine.prototype = {
@@ -93,34 +94,22 @@ KotEngine.prototype = {
       } else {
         newToken[bef['row']][after['token']]['id'] = this.tokenList[bef['row']][after['old']]['id'];
       }
-      /*
       if((this.code == 46 || this.code == 8) && newToken[bef['row']][after['token']].length == 0) { 
-        this.acts.push({
+        this.act ={
           'id': newToken[bef['row']][after['token']]['id'],
           'act': 'delete'
-        })
-      } else {
-        var act = ""
-        switch(newToken[bef['row']][after['token']]['kind']) {
-          case "keyword": act = "new"
-          case "special": act = "new"
-          case "number": act = "newNumber"
         }
-        this.acts.push({
-          'id': newToken[bef['row']][after['token']]['id'],
-          'act': act
-        })
       }
-      */
+        
+
       after['old'] = ++after['old'];
       after['token'] = ++after['token'];
     }
   },
   putSource: function(source, opts) {
-    this.acts = []
+    this.act = {}
     this.code = opts['code']
     var newTokenList = this.lexer.tokenize(source);
-    console.log(newTokenList)
 
     if(this.tokenList.length == 0) {
       this.tokenList = this.initSource(newTokenList)
@@ -129,12 +118,41 @@ KotEngine.prototype = {
       samePoint = this.getSameToken(newTokenList, after=diffPoint)
       this.inheritId(newTokenList, diffPoint, samePoint)
       this.tokenList = newTokenList
+      currentToken = newTokenList[samePoint['row']][samePoint['token'] - 1]
+      if(opts['code'] == 8) {
+        if(currentToken !== void 0) {
+          this.act = {
+            'id': currentToken['id'],
+            'act': 'delete'
+          }
+        } else {
+          this.act = {
+            'id': '',
+            'act': 'empty'
+          }
+        }
+      } else {
+        if(currentToken !== void 0) {
+          var act = ""
+          switch(currentToken['kind']) {
+            case "keyword": act = "newKeyword"; break;
+            case "special": act = "newSpecial"; break;
+            case "number": act = "newNumber"; break;
+          }
+          if(act.length != 0) {
+            this.act =  {
+              'id': newTokenList[samePoint['row']][samePoint['token'] - 1]['id'],
+              'act': act
+            }
+          }
+        }
+      }
     }
     // call renderer
-    console.log("act >",this.acts)
+    console.log(this.act)
     this.eventCallback({
       "tokens": this.tokenList,
-      "act": this.acts,
+      "act": this.act,
       "cursor": opts['cursor']
     }); 
   },
