@@ -69,7 +69,10 @@ KotStorage = function(){
     } else {
       putChar(String.fromCharCode(code));
     }
-    if(engine != undefined) engine.putSource(storage);
+    if(engine != undefined) {
+      console.log(storage)
+      engine.putSource(storage);
+    }
   }
 
   this.setEngine = function(e) {
