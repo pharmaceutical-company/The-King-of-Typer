@@ -46,10 +46,16 @@ KotRenderer = function(width, height) {
         if(Object.keys(message.act).length == 0) {
           effectRenderer.addEffect(new Effect(EFFECT_PROTOTYPE_MAP.ATTACK,
               null, stage, characterRenderer.cursorXY.x+9, characterRenderer.cursorXY.y+16));
-        } else if(message.act.act == "newKeyword") {
-          console.log(message.act);
-          effectRenderer.addEffect(new Effect(EFFECT_PROTOTYPE_MAP.FIRE,
-              null, stage, characterRenderer.cursorXY.x, characterRenderer.cursorXY.y));
+        } else {
+          console.log(message.act.act);
+          if(message.act.act == "newKeyword") {
+            effectRenderer.addEffect(new Effect(EFFECT_PROTOTYPE_MAP.ATTACK,
+                null, stage, characterRenderer.cursorXY.x+9, characterRenderer.cursorXY.y+16));
+          }
+          if(message.act.act == "delete" || message.act.act == "empty") {
+            effectRenderer.addEffect(new Effect(EFFECT_PROTOTYPE_MAP.FIRE,
+                null, stage, characterRenderer.cursorXY.x, characterRenderer.cursorXY.y));
+          }
         }
       }
 
@@ -270,7 +276,7 @@ Effect = function(effectPrototype, value, stage, x, y) {
     }
 
     if(effectPrototype.type == "func") {
-      drawingObject = effectPrototype.update(currentFrame, value);
+      drawingObject = effectPrototype.update(currentImageFrame, value);
     } else if(effectPrototype.type == "image") {
       var texture = PIXI.Texture.
           fromImage("/static/img/" + effectPrototype.header + currentImageFrame + ".png")
@@ -329,7 +335,7 @@ var EFFECT_PROTOTYPE_MAP = {
   FIRE: {
     type: "image",
     frameLength: 6,
-    frameWidth: 2,
+    frameWidth: 4,
     anchorX: 0.5,
     anchorY: 0.5,
     header: "fire",
