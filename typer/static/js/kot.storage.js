@@ -44,7 +44,7 @@ KotStorage = function(){
     max_col = -1;
   }
 
-  this.putchar = function(code) {
+  this.putCmd = function(code) {
     switch(code) {
     case 13:
       newLine();
@@ -102,9 +102,11 @@ KotStorage = function(){
         col = storage[row].length;
       }
       break;
-    default:
-      putChar(String.fromCharCode(code));
     }
+    if(engine != undefined) engine.putSource(storage);
+  };
+  this.putChar = function(code) {
+    putChar(String.fromCharCode(code));
     if(engine != undefined) engine.putSource(storage);
   }
 
