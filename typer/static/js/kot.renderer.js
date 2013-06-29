@@ -4,7 +4,7 @@ KotRenderer = function(width, height) {
   var renderer = PIXI.autoDetectRenderer(width, height);
 
   var effectRenderer = new KotEffectRenderer();
-  var characterRenderer = new KotCharacterRenderer(80, 25);
+  var characterRenderer = new KotCharacterRenderer(65, 20);
 
   this.view = renderer.view;
 
@@ -41,10 +41,18 @@ KotRenderer = function(width, height) {
   function doMessages() {
     while(messageQueue.length > 0) {
       message = messageQueue.shift();
-      if(characterRenderer.cursorXY != undefined && Object.keys(message.act).length == 0) {
-        effectRenderer.addEffect(
-            new Effect(EFFECT_PROTOTYPE_MAP.ATTACK, null, stage, characterRenderer.cursorXY.x, characterRenderer.cursorXY.y));
+
+      if(characterRenderer.cursorXY != undefined) { 
+        if(Object.keys(message.act).length == 0) {
+          effectRenderer.addEffect(new Effect(EFFECT_PROTOTYPE_MAP.ATTACK,
+              null, stage, characterRenderer.cursorXY.x+9, characterRenderer.cursorXY.y+16));
+        } else if(message.act.act == "newKeyword") {
+          console.log(message.act);
+          effectRenderer.addEffect(new Effect(EFFECT_PROTOTYPE_MAP.FIRE,
+              null, stage, characterRenderer.cursorXY.x, characterRenderer.cursorXY.y));
+        }
       }
+
       if(messageQueue.length == 0) { 
         characterRenderer.clear();
         for(var i=0; i<message.tokens.length; ++i) {
@@ -165,11 +173,11 @@ KotCharacterRenderer = function(columns, rows) {
 
     for(var i=getPositionOfFirstOfLine(firstRow); i<characterArray.length; ++i) {
       if(cursorPosition == i) {
-        that.cursorXY = { x: columnCount * 9, y: rowCount * 16 };
-        console.log(that.cursorXY.x+", "+that.cursorXY.y);
+        that.cursorXY = { x: columnCount * 18, y: rowCount * 32 };
+        //console.log(that.cursorXY.x+", "+that.cursorXY.y);
 
         cursorDisplayObject = new PIXI.Sprite(
-            new PIXI.Texture(that.cursorTexture, new PIXI.Rectangle(1, 1, 9, 16))
+            new PIXI.Texture(that.cursorTexture, new PIXI.Rectangle(1, 1, 18, 32))
         );
         cursorDisplayObject.position.x = that.cursorXY.x;
         cursorDisplayObject.position.y = that.cursorXY.y;
@@ -183,8 +191,8 @@ KotCharacterRenderer = function(columns, rows) {
         continue;
       }
 
-      characterArray[i].displayObject.position.x = columnCount * 9;
-      characterArray[i].displayObject.position.y = rowCount * 16;
+      characterArray[i].displayObject.position.x = columnCount * 18;
+      characterArray[i].displayObject.position.y = rowCount * 32;
 
       stage.addChild(characterArray[i].displayObject);
 
@@ -212,7 +220,7 @@ Character = function(value, color) {
 
   if(value != '\n')
     this.displayObject =
-        new PIXI.Text(value, { font: "14px Monaco", fill: color, align: "center" });
+        new PIXI.Text(value, { font: "28px Monaco", fill: color, align: "center" });
 
 }
 
@@ -254,8 +262,9 @@ Effect = function(effectPrototype, value, stage, x, y) {
 
   this.update = function() {
     currentFrame++;
+    var currentImageFrame = parseInt(currentFrame/effectPrototype.frameWidth) + 1;
 
-    if(currentFrame > effectPrototype.frameLength) {
+    if(currentImageFrame > effectPrototype.frameLength) {
       finished = true;
       return;
     }
@@ -264,15 +273,15 @@ Effect = function(effectPrototype, value, stage, x, y) {
       drawingObject = effectPrototype.update(currentFrame, value);
     } else if(effectPrototype.type == "image") {
       var texture = PIXI.Texture.
-          fromImage("/static/img/nomal_attack" + currentFrame + ".png")
+          fromImage("/static/img/" + effectPrototype.header + currentImageFrame + ".png")
       drawingObject = new PIXI.Sprite(texture);
     }
 
   }
 
   this.draw = function() {
-    drawingObject.anchor.x = 0.5;
-    drawingObject.anchor.y = 0.5;
+    drawingObject.anchor.x = effectPrototype.anchorX;
+    drawingObject.anchor.y = effectPrototype.anchorY;
     drawingObject.position.x = x;
     drawingObject.position.y = y;
 
@@ -296,6 +305,7 @@ var EFFECT_PROTOTYPE_MAP = {
   DRAW_STRING: {
     type: "func",
     frameLength: 1,
+    frameWidth: 1,
     update: function(frame, value) {
       if(frame <= this.frameLength)
         return new PIXI.Text(value, { font: "14px monospace", fill: "white" });
@@ -310,7 +320,18 @@ var EFFECT_PROTOTYPE_MAP = {
   ATTACK: {
     type: "image",
     frameLength: 5,
-    header: "normal_attack",
+    frameWidth: 2,
+    anchorX: 0.5,
+    anchorY: 0.5,
+    header: "nomal_attack",
   },
 
+  FIRE: {
+    type: "image",
+    frameLength: 6,
+    frameWidth: 2,
+    anchorX: 0.5,
+    anchorY: 0.5,
+    header: "fire",
+  },
 }
