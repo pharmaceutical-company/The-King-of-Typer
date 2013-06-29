@@ -43,12 +43,12 @@
 
     textareaElement.keydown(function(e){
       var code = e.keyCode;
-      if(33<=code && code<=40) {
-        storage.putchar(e.which);
+      if((33<=code && code<=40) || code == 8 || code == 46 || code == 13) {
+        storage.putCmd(code);
       }
     });
     textareaElement.keypress(function(e){
-      storage.putchar(e.which);
+      storage.putChar(e.which);
     });
     canvasElement.click(function(){
       textareaElement.focus();
