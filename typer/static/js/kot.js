@@ -43,11 +43,14 @@
 
     textareaElement.keydown(function(e){
       var code = e.keyCode;
-      if((33<=code && code<=40) || code == 8 || code == 46 || code == 13) {
+      if((33<=code && code<=40) || code == 8 || code == 9 || code == 46 || code == 13) {
+        console.log(code);
         storage.putCmd(code);
+        return false;
       }
     });
     textareaElement.keypress(function(e){
+      if(e.which == 13) {return;}
       storage.putChar(e.which);
     });
     canvasElement.click(function(){
