@@ -51,6 +51,9 @@ KotLexer.prototype =  {
         },
         '\\\\': function(text) {
           return that.tokenForm('linebreak', text);
+        },
+        '\\+|\\-|\\*|\\/': function(text) {
+          return that.tokenForm('arithmathic', text);
         }
 
       } 

@@ -68,10 +68,11 @@ KotEngine.prototype = {
     }
     var line = 0;
     var token = 0;
-    var old = 0;
+    var old = -1;
+    var lineDiff = -1;
     var minLineLength = Math.min(newToken.length, this.tokenList.length)
     for(var i=after['row']; i < minLineLength; i++) {
-      var lineDiff = isSameToken(newToken[i], this.tokenList[i]);
+      lineDiff = isSameToken(newToken[i], this.tokenList[i]);
       if(lineDiff != -1) {
         line = i;
         token = lineDiff[1];
@@ -79,17 +80,25 @@ KotEngine.prototype = {
         break
       }
     }
+
     return {'row': line, 'token': token, 'old': old};
   },
   inheritId: function(newToken, bef, after) {
     while(after['token'] < newToken[bef['row']].length) {
-      newToken[bef['row']][after['token']]['id'] = this.tokenList[bef['row']][after['old']]['id'];
+      if(after['old'] == -1) {
+        newToken[bef['row']][after['token']]['id'] = this.idGen()
+      } else if(this.tokenList[bef['row']].length <= after['old']) {
+        newToken[bef['row']][after['token']]['id'] = this.idGen()
+      } else {
+        newToken[bef['row']][after['token']]['id'] = this.tokenList[bef['row']][after['old']]['id'];
+      }
       after['old'] = ++after['old'];
       after['token'] = ++after['token'];
     }
   },
   putSource: function(source) {
     var newTokenList = this.lexer.tokenize(source);
+    console.log(newTokenList)
 
     if(this.tokenList.length == 0) {
       this.tokenList = this.initSource(newTokenList)
@@ -101,11 +110,11 @@ KotEngine.prototype = {
       this.inheritId(newTokenList, diffPoint, samePoint)
       this.tokenList = newTokenList
       console.log(this.tokenList)
-      // call renderer
-      this.eventCallback({
-        "tokens": this.tokenList 
-      }); 
     }
+    // call renderer
+    this.eventCallback({
+      "tokens": this.tokenList 
+    }); 
   },
   setEventCallback: function(callback) {
     this.eventCallback = callback;
