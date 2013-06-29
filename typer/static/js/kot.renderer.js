@@ -18,6 +18,7 @@ KotRenderer = function(width, height) {
 
   this.load = function() {
     // load somethings... (sprites, resources, etc)
+    
     loaded = true;
   }
 
@@ -40,26 +41,30 @@ KotRenderer = function(width, height) {
   function doMessages() {
     while(messageQueue.length > 0) {
       message = messageQueue.shift();
-      if(messageQueue.length == 0) {
-        clear();
-        for(var i=0; i<message.tokens.length; ++i) {
-          for(var j=0; j<message.tokens[i].length; ++j) {
-            characterRenderer.addToken(message.tokens[i][j]);
-          }
-          characterRenderer.newLine();
+      characterRenderer.clear();
+      if(characterRenderer.cursorXY != undefined && Object.keys(message.act).length == 0) {
+        effectRenderer.addEffect(
+            new Effect(EFFECT_PROTOTYPE_MAP.ATTACK, null, stage, characterRenderer.cursorXY.x, characterRenderer.cursorXY.y));
+      }
+      for(var i=0; i<message.tokens.length; ++i) {
+        //if(message.cursor.row == i)
+        //  characterRenderer.setCursorPosition(characterRenderer.drawPosition);
+        for(var j=0; j<message.tokens[i].length; ++j) {
+          characterRenderer.addToken(message.tokens[i][j]);
         }
+        characterRenderer.newLine();
       }
     }
   }
 
   function draw() {
+    clear();
     characterRenderer.draw(stage);
     effectRenderer.draw(stage)
     renderer.render(stage);
   }
 
   function clear() {
-    characterRenderer.clear();
     for(var i=stage.children.length-1; i>=0; --i) {
       stage.removeChild(stage.children[i], i);
     }
@@ -73,9 +78,15 @@ KotCharacterRenderer = function(columns, rows) {
       that = this,
       firstRow = 0,
       drawPosition = 0,
-      changed = false;
+      changed = false,
+      cursorPosition = 0;
 
+  this.cursorXY = undefined;
+  this.cursorDisplayObject = undefined;
+  this.cursorTexture = PIXI.Texture.fromImage("/static/img/cursor.png");
   this.length = function() { return characterArray.length; }
+
+  var that = this;
 
   function addCharacter(value, position, color) {
     value = new Character(value, color);
@@ -122,6 +133,7 @@ KotCharacterRenderer = function(columns, rows) {
   this.clear = function() {
     characterArray = new Array();
     drawPosition = 0;
+    cursorPosition = 0;
     firstRow = 0;
   }
 
@@ -148,13 +160,23 @@ KotCharacterRenderer = function(columns, rows) {
   this.draw = function(stage) {
     var columnCount = 0, rowCount = 0;
 
-    if(changed == false) return;
-
     for(var i=getPositionOfFirstOfLine(firstRow); i<characterArray.length; ++i) {
       if(characterArray[i].value == '\n') {
         columnCount = 0;
         ++rowCount;
         continue;
+      }
+
+      if(cursorPosition == i) {
+        that.cursorXY = { x: columnCount * 10, y: rowCount * 16 };
+
+        cursorDisplayObject = new PIXI.Sprite(
+            new PIXI.Texture(
+                that.cursorTexture, new PIXI.Rectangle(that.cursorXY.x, that.cursorXY.y, 9, 16)
+            )
+        );
+
+        stage.addChild(cursorDisplayObject);
       }
 
       characterArray[i].displayObject.position.x = columnCount * 9;
@@ -174,6 +196,9 @@ KotCharacterRenderer = function(columns, rows) {
     }
   }
 
+  this.setCursorPosition = function(position) {
+    cursorPosition = position;
+  }
 }
 
 Character = function(value, color) {
@@ -198,24 +223,25 @@ KotEffectRenderer = function() {
   this.update = function() {
     for(var i=0; i<effectArray.length; ++i) {
       effectArray[i].update();
+      if(effectArray[i].isFinished()) removeEffect(i--);
     }
   }
 
   this.draw = function(stage) {
     for(var i=0; i<effectArray.length; ++i) {
       effectArray[i].draw(stage);
-      if(effectArray[i].isFinished()) removeEffect(i--);
     }
   }
 
   function removeEffect(position) {
+    //effectArray[position].clear();
     effectArray = (position < 0 || position > effectArray.length) ?
         effectArray : effectArray.slice(0, position).concat(effectArray.slice(position+1, effectArray.length));
   };
 
 }
 
-Effect = function(effectPrototype, value, stage) {
+Effect = function(effectPrototype, value, stage, x, y) {
 
   var currentFrame = 0;
 
@@ -224,18 +250,27 @@ Effect = function(effectPrototype, value, stage) {
 
   this.update = function() {
     currentFrame++;
-    if(effectPrototype.type == "func")
-      drawingObject = effectPrototype.update(currentFrame, value);
-    else ;
 
-    if(currentFrame == effectPrototype.frameLength)
+    if(currentFrame > effectPrototype.frameLength) {
       finished = true;
+      return;
+    }
+
+    if(effectPrototype.type == "func") {
+      drawingObject = effectPrototype.update(currentFrame, value);
+    } else if(effectPrototype.type == "image") {
+      var texture = PIXI.Texture.
+          fromImage("/static/img/nomal_attack" + currentFrame + ".png")
+      drawingObject = new PIXI.Sprite(texture);
+    }
+
   }
 
   this.draw = function() {
     if(effectPrototype.type == "func" && drawingObject != null)
       effectPrototype.draw(drawingObject, stage);
-    else ;
+    else if(effectPrototype.type == "image")
+      stage.addChild(drawingObject);
   }
 
   this.isFinished = function() {
@@ -261,6 +296,12 @@ var EFFECT_PROTOTYPE_MAP = {
     draw: function(drawingObject, stage) {
       stage.addChild(drawingObject);
     },
+  },
+
+  ATTACK: {
+    type: "image",
+    frameLength: 5,
+    header: "normal_attack",
   },
 
 }
