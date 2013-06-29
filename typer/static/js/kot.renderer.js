@@ -40,12 +40,14 @@ KotRenderer = function(width, height) {
   function doMessages() {
     while(messageQueue.length > 0) {
       message = messageQueue.shift();
-      clear();
-      for(var i=0; i<message.tokens.length; ++i) {
-        for(var j=0; j<message.tokens[i].length; ++j) {
-          characterRenderer.addToken(message.tokens[i][j]);
+      if(messageQueue.length == 0) {
+        clear();
+        for(var i=0; i<message.tokens.length; ++i) {
+          for(var j=0; j<message.tokens[i].length; ++j) {
+            characterRenderer.addToken(message.tokens[i][j]);
+          }
+          characterRenderer.newLine();
         }
-        characterRenderer.newLine();
       }
     }
   }
@@ -165,6 +167,7 @@ KotCharacterRenderer = function(columns, rows) {
       }
 
       if(rowCount > rows) break;
+      changed = false;
     }
   }
 
