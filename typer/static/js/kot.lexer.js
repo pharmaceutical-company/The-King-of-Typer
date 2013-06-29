@@ -22,10 +22,10 @@ KotLexer.prototype =  {
         "(['\"]{3})([^\\1])*?\\1": function(text) {
           return that.tokenForm('comment', text);
         },
-        '"(?!")(?:\\.|\\\\\\"|[^\\""\\n\\r])*"': function(text) {
+        '"': function(text) {
           return that.tokenForm('string', text);
         },
-        "'(?!')(?:\\.|(\\\\\\')|[^\\''\\n\\r])*'": function(text) {
+        "'": function(text) {
           return that.tokenForm('string', text);
         },
         "\\b\\d+\\.?\\w*": function(text) {
@@ -55,11 +55,9 @@ KotLexer.prototype =  {
         '\\+|\\-|\\*|\\/': function(text) {
           return that.tokenForm('arithmathic', text);
         },
-        '\\.|\\%|@': function(text) {
+        '\\.|\\%|@|&|\\^': function(text) {
           return that.tokenForm('buho', text);
         }
-
-
       } 
     };
     return ruleList[k];
@@ -73,10 +71,16 @@ KotLexer.prototype =  {
       var token;
       while ((token = l.lex()) != Lexed.EOF) {
         if(token.kind == "comment" && (token.str == '"""' || token.str == "'''")) {
-          if(statement.length == 0) {
+          if(statement != "comment") {
             statement = "comment";
           } else {
             statement = "";
+          }
+        } else if(token.kind == "string" && (token.str == '"' || token.str =="'")) {
+          if(statement != "string") {
+            statement = "string";
+          } else {
+            statement = ""
           }
         }
         if(statement.length == 0) {
