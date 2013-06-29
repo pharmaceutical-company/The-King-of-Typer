@@ -3,6 +3,8 @@ var KotEngine = function() {
   this.lexer = new KotLexer('python');
   this.eventCallback = function() {};
   this.nextId = 0;
+  this.code = -1;
+  this.act = {};
 };
 
 KotEngine.prototype = {
@@ -68,10 +70,11 @@ KotEngine.prototype = {
     }
     var line = 0;
     var token = 0;
-    var old = 0;
+    var old = -1;
+    var lineDiff = -1;
     var minLineLength = Math.min(newToken.length, this.tokenList.length)
     for(var i=after['row']; i < minLineLength; i++) {
-      var lineDiff = isSameToken(newToken[i], this.tokenList[i]);
+      lineDiff = isSameToken(newToken[i], this.tokenList[i]);
       if(lineDiff != -1) {
         line = i;
         token = lineDiff[1];
@@ -79,16 +82,33 @@ KotEngine.prototype = {
         break
       }
     }
+
     return {'row': line, 'token': token, 'old': old};
   },
   inheritId: function(newToken, bef, after) {
     while(after['token'] < newToken[bef['row']].length) {
-      newToken[bef['row']][after['token']]['id'] = this.tokenList[bef['row']][after['old']]['id'];
+      if(after['old'] == -1) {
+        newToken[bef['row']][after['token']]['id'] = this.idGen()
+      } else if(this.tokenList[bef['row']].length <= after['old']) {
+        newToken[bef['row']][after['token']]['id'] = this.idGen()
+      } else {
+        newToken[bef['row']][after['token']]['id'] = this.tokenList[bef['row']][after['old']]['id'];
+      }
+      if((this.code == 46 || this.code == 8) && newToken[bef['row']][after['token']].length == 0) { 
+        this.act ={
+          'id': newToken[bef['row']][after['token']]['id'],
+          'act': 'delete'
+        }
+      }
+        
+
       after['old'] = ++after['old'];
       after['token'] = ++after['token'];
     }
   },
-  putSource: function(source) {
+  putSource: function(source, opts) {
+    this.act = {}
+    this.code = opts['code']
     var newTokenList = this.lexer.tokenize(source);
 
     if(this.tokenList.length == 0) {
@@ -96,16 +116,45 @@ KotEngine.prototype = {
     } else {
       diffPoint = this.diffSource(newTokenList)
       samePoint = this.getSameToken(newTokenList, after=diffPoint)
-      console.log(diffPoint)
-      console.log(samePoint)
       this.inheritId(newTokenList, diffPoint, samePoint)
       this.tokenList = newTokenList
-      console.log(this.tokenList)
-      // call renderer
-      this.eventCallback({
-        "tokens": this.tokenList 
-      }); 
+      currentToken = newTokenList[samePoint['row']][samePoint['token'] - 1]
+      if(opts['code'] == 8) {
+        if(currentToken !== void 0) {
+          this.act = {
+            'id': currentToken['id'],
+            'act': 'delete'
+          }
+        } else {
+          this.act = {
+            'id': '',
+            'act': 'empty'
+          }
+        }
+      } else {
+        if(currentToken !== void 0) {
+          var act = ""
+          switch(currentToken['kind']) {
+            case "keyword": act = "newKeyword"; break;
+            case "special": act = "newSpecial"; break;
+            case "number": act = "newNumber"; break;
+          }
+          if(act.length != 0) {
+            this.act =  {
+              'id': newTokenList[samePoint['row']][samePoint['token'] - 1]['id'],
+              'act': act
+            }
+          }
+        }
+      }
     }
+    // call renderer
+    console.log(this.act)
+    this.eventCallback({
+      "tokens": this.tokenList,
+      "act": this.act,
+      "cursor": opts['cursor']
+    }); 
   },
   setEventCallback: function(callback) {
     this.eventCallback = callback;

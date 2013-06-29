@@ -109,6 +109,9 @@ KotCharacterRenderer = function(columns, rows) {
     case 'identifier':
       color = '#BFBF00';
       break;
+    case 'comment':
+      color = '#b0c4de'
+      break;
     }
 
     for(var i=0; i<token.str.length; ++i) {
