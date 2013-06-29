@@ -6,12 +6,13 @@ KotStorage = function(){
   function newLine() {
     var line = storage[row];
     var line1 = line.slice(0, col);
-    var line2 = line.slice(col);
+    var autoIndent = /^\s*/.exec(line1)[0];
+    var line2 = autoIndent + line.slice(col);
 
     storage[row] = line1;
     storage.splice(row+1,0,line2);
     row = row + 1;
-    col = 0;
+    col = autoIndent.length;
     max_col = -1;
   }
 
@@ -48,6 +49,12 @@ KotStorage = function(){
     switch(code) {
     case 13:
       newLine();
+      break;
+    case  9: // TAB
+      putChar(' ');
+      while(col%4!=0) {
+        putChar(' ');
+      }
       break;
     case  8: // BACK SPACE
       if (0 < col) {
