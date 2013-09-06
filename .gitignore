@@ -1,5 +1,7 @@
-*.swp
-.DS_STORE
-__pycache__
+
 *.pyc
-*.*~
+__pycache__
+
+*.swp
+*.swo
+*.egg-info
