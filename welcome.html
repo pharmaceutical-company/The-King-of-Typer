@@ -1,0 +1,11 @@
+{% extends "main.html" %}
+
+{% block title %}
+Welcome to The King of Typer
+{% endblock %}
+
+{% block body %}
+<h1> 쩌는 에디터와 함께 Python 코딩을 해보세요. </h1>
+
+<a href="{{ url_for('.edit') }}">사용하러가기.</a>
+{% endblock %}
