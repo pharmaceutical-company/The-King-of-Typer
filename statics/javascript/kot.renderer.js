@@ -83,7 +83,7 @@ KotCharacterRenderer = function(columns, rows) {
 
   this.cursorXY = undefined;
   this.cursorDisplayObject = undefined;
-  this.cursorTexture = PIXI.Texture.fromImage("../img/cursor.png");
+  this.cursorTexture = PIXI.Texture.fromImage("./statics/img/cursor.png");
   this.length = function() { return characterArray.length; }
 
   var that = this;
@@ -260,7 +260,7 @@ Effect = function(effectPrototype, value, stage, x, y) {
       drawingObject = effectPrototype.update(currentFrame, value);
     } else if(effectPrototype.type == "image") {
       var texture = PIXI.Texture.
-          fromImage("../img/nomal_attack" + currentFrame + ".png")
+          fromImage("./statics/img/nomal_attack" + currentFrame + ".png")
       drawingObject = new PIXI.Sprite(texture);
     }
 
